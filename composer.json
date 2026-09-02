@@ -1,0 +1,32 @@
+{
+    "config": {
+        "autoloader-suffix": "Payzum"
+    },
+    "name": "payzum/module-payzum",
+    "description": "Payzum crypto & stablecoin payments app for Akaunting",
+    "homepage": "https://payzum.com",
+    "keywords": [
+        "laravel",
+        "accounting",
+        "invoice",
+        "akaunting",
+        "payzum",
+        "crypto",
+        "stablecoin",
+        "usdc",
+        "usdt"
+    ],
+    "license": "GPL-3.0+",
+    "require": {
+        "payzum/omnipay-payzum": "^0.1.1"
+    },
+    "replace": {
+        "omnipay/common": "*",
+        "league/omnipay": "*"
+    },
+    "scripts": {
+        "test": [
+            "composer install --prefer-dist --no-interaction --no-scripts --no-suggest --no-progress --no-ansi"
+        ]
+    }
+}

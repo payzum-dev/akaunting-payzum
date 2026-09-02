@@ -1,0 +1,55 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+
+    name: PHP ${{ matrix.php }}
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3']
+
+    steps:
+      - name: Checkout Akaunting
+        uses: actions/checkout@v4
+        with:
+          repository: akaunting/akaunting
+
+      - name: Checkout Payzum module
+        uses: actions/checkout@v4
+        with:
+          path: modules/Payzum
+
+      - name: Cache Composer
+
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: php-${{ matrix.php }}-composer-${{ hashFiles('composer.json') }}
+
+      - name: Setup PHP
+
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: bcmath, ctype, dom, fileinfo, intl, gd, json, mbstring, pdo, pdo_sqlite, openssl, sqlite, xml, zip
+          coverage: none
+
+      - name: Copy .env
+
+        run: cp .env.testing .env
+
+      - name: Install Composer
+
+        run: cd modules/Payzum ; composer test ; cd ../.. ; composer test
+
+      - name: Execute tests
+
+        run: php artisan test modules/Payzum/Tests

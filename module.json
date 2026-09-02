@@ -1,0 +1,111 @@
+{
+    "alias": "payzum",
+    "icon": "payments",
+    "version": "0.1.0",
+    "active": 1,
+    "providers": [
+        "Modules\\Payzum\\Providers\\Event",
+        "Modules\\Payzum\\Providers\\Main"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": [],
+    "reports": [],
+    "widgets": [],
+    "settings": [
+        {
+            "type": "text",
+            "name": "name",
+            "title": "general.name",
+            "icon": "fa fa-font",
+            "attributes": {
+                "required": "required"
+            },
+            "rules": "required|string"
+        },
+        {
+            "type": "text",
+            "name": "api_key",
+            "title": "payzum::general.form.api_key",
+            "icon": "key",
+            "attributes": {
+                "required": "required"
+            },
+            "rules": "required|string"
+        },
+        {
+            "type": "text",
+            "name": "webhook_secret",
+            "title": "payzum::general.form.webhook_secret",
+            "icon": "lock",
+            "attributes": {
+                "required": "required"
+            },
+            "rules": "required|string"
+        },
+        {
+            "type": "select",
+            "name": "mode",
+            "title": "payzum::general.form.mode",
+            "icon": "plane",
+            "values": {
+                "live": "Live",
+                "sandbox": "Sandbox"
+            },
+            "selected": "live",
+            "attributes": {
+                "required": "required"
+            },
+            "rules": "required|string"
+        },
+        {
+            "type": "text",
+            "name": "pay_currency",
+            "title": "payzum::general.form.pay_currency",
+            "icon": "coins",
+            "attributes": {},
+            "rules": "nullable|string"
+        },
+        {
+            "type": "account",
+            "name": "account_id",
+            "attributes": {
+                "required": "required"
+            },
+            "rules": "required"
+        },
+        {
+            "type": "text",
+            "name": "order",
+            "title": "payzum::general.form.order",
+            "icon": "sort",
+            "attributes": {},
+            "rules": "nullable|integer"
+        },
+        {
+            "type": "toggle",
+            "name": "customer",
+            "title": "payzum::general.form.customer",
+            "enable": "general.yes",
+            "disable": "general.no",
+            "attributes": {},
+            "rules": "required|integer"
+        },
+        {
+            "type": "toggle",
+            "name": "debug",
+            "title": "payzum::general.form.debug",
+            "enable": "general.yes",
+            "disable": "general.no",
+            "attributes": {},
+            "rules": "required|integer"
+        }
+    ],
+    "extra-modules": {},
+    "routes": {
+        "redirect_after_install": [
+            "settings.module.edit",
+            "payzum"
+        ]
+    }
+}

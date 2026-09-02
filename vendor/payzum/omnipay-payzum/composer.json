@@ -1,0 +1,58 @@
+{
+  "name": "payzum/omnipay-payzum",
+  "description": "Payzum driver for the Omnipay payment processing library — accept crypto and stablecoin payments (USDC/USDT, multi-chain, non-custodial).",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://github.com/payzum-dev/omnipay-payzum",
+  "keywords": [
+    "gateway",
+    "merchant",
+    "omnipay",
+    "pay",
+    "payment",
+    "payzum",
+    "crypto",
+    "stablecoin",
+    "usdc",
+    "usdt",
+    "bitcoin",
+    "ethereum"
+  ],
+  "authors": [
+    {
+      "name": "Payzum",
+      "homepage": "https://payzum.com"
+    }
+  ],
+  "support": {
+    "docs": "https://merchant.payzum.com/docs",
+    "issues": "https://github.com/payzum-dev/omnipay-payzum/issues",
+    "source": "https://github.com/payzum-dev/omnipay-payzum"
+  },
+  "require": {
+    "php": ">=8.1",
+    "omnipay/common": "^3.2",
+    "payzum/payzum-php": "^0.1"
+  },
+  "require-dev": {
+    "omnipay/tests": "^4.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Omnipay\\Payzum\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Omnipay\\Payzum\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
