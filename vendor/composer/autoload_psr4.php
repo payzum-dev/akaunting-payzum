@@ -8,4 +8,5 @@ $baseDir = dirname($vendorDir);
 return array(
     'Payzum\\' => array($vendorDir . '/payzum/payzum-php/src'),
     'Omnipay\\Payzum\\' => array($vendorDir . '/payzum/omnipay-payzum/src'),
+    'Modules\\Payzum\\' => array($baseDir . '/'),
 );

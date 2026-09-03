@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "76f53c5a6c712c8c1cb593d042b4c454",
+    "content-hash": "d9794195e871e6eaf3012859d80c3f93",
     "packages": [
         {
             "name": "payzum/omnipay-payzum",

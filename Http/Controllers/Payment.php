@@ -3,10 +3,12 @@
 namespace Modules\Payzum\Http\Controllers;
 
 use App\Abstracts\Http\PaymentController;
+use App\Events\Document\PaymentReceived;
 use App\Http\Requests\Portal\InvoicePayment as PaymentRequest;
 use App\Models\Document\Document;
 use App\Traits\Omnipay;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Omnipay\Common\Exception\InvalidRequestException;
 
@@ -99,8 +101,12 @@ class Payment extends PaymentController
 
         $payload = $notification->getData();
 
+        // What the hosted checkout charged: the trait creates the invoice for
+        // the outstanding balance, not the document total.
+        $amount_due = $invoice->amount - $invoice->paid;
+
         $amount_match = isset($payload['price_amount'])
-            && (double) $payload['price_amount'] == (double) ($invoice->amount - $invoice->paid);
+            && (double) $payload['price_amount'] == (double) $amount_due;
 
         $currency_match = isset($payload['price_currency'])
             && strtolower((string) $payload['price_currency']) == strtolower($invoice->currency_code);
@@ -114,7 +120,9 @@ class Payment extends PaymentController
         }
 
         if ($amount_match && $currency_match) {
-            if ($invoice->status == 'paid') {
+            $recorded = $this->recordPayment($invoice, $request, $amount_due, $notification->getTransactionReference());
+
+            if ($recorded === null) {
                 // Deliveries are retried; a redelivered `finished` event must
                 // be a no-op, not a second transaction.
                 $payzum_log->info('PAYZUM :: ALREADY PAID, IGNORING REDELIVERY :: Invoice: ' . $invoice->id);
@@ -122,16 +130,110 @@ class Payment extends PaymentController
                 return response('OK', 200);
             }
 
-            $this->setReference($invoice, $notification->getTransactionReference());
+            if ($recorded === false) {
+                // The transaction did not make it into the books. Answering 200
+                // here would tell Payzum the delivery succeeded and stop the
+                // retries, leaving money received against an unpaid invoice
+                // with nothing but a log line to show for it.
+                $payzum_log->info('PAYZUM :: PAYMENT NOT RECORDED, ASKING FOR A RETRY :: Invoice: ' . $invoice->id);
 
-            $this->dispatchPaidEvent($invoice, $request);
-
-            $this->forgetReference($invoice);
+                return response('Payment not recorded', 500);
+            }
 
             $payzum_log->info('PAYZUM :: Payment Received for Invoice: ' . $invoice->id . ' - Payment ID: ' . $notification->getTransactionReference());
         }
 
         return response('OK', 200);
+    }
+
+    /**
+     * Record the payment against the invoice, at most once.
+     *
+     * The invoice row is locked and re-read first: a redelivered notification
+     * can arrive while the previous one is still being processed, and two
+     * check-then-act paths would otherwise both create a transaction for the
+     * same money. That lock is the only reason a transaction is here, so the
+     * transaction has to decide the outcome on the books alone — never on
+     * whether a side effect of the event happened to succeed.
+     *
+     * @return bool|null true when this call recorded the payment, null when it
+     *                   was already settled, false when nothing was written
+     */
+    protected function recordPayment(Document $invoice, Request $request, $amount_due, $reference)
+    {
+        return DB::transaction(function () use ($invoice, $request, $amount_due, $reference) {
+            $locked = Document::query()->whereKey($invoice->id)->lockForUpdate()->first();
+
+            if ($locked === null || $locked->status == 'paid') {
+                return null;
+            }
+
+            $paid_before = $invoice->paid;
+
+            $this->setReference($invoice, $reference);
+
+            try {
+                $this->dispatchPaidEvent($invoice, $request, $amount_due);
+            } catch (\Throwable $e) {
+                // PaymentReceived runs two core listeners in one synchronous
+                // call: CreateDocumentTransaction, which writes the money, and
+                // SendDocumentPaymentNotification, which renders a PDF invoice
+                // and hands it to the mailer. That notification is ShouldQueue,
+                // but Akaunting ships QUEUE_CONNECTION=sync, so on a default
+                // install the SMTP call happens right here — inside the
+                // transaction, after the books have already moved.
+                //
+                // Letting it escape rolls the whole transaction back: an
+                // unreachable mail host, an expired TLS certificate or a
+                // rendering error would un-pay an invoice the buyer really did
+                // pay, and the retry would find the same broken mailer and fail
+                // the same way. Money must not depend on the mail server.
+                //
+                // So the exception never decides the outcome. The outcome is
+                // decided below by whether the books actually moved: if the
+                // financial listener is the one that failed, `paid` is
+                // unchanged and this still returns false, so the caller answers
+                // 500 and asks Payzum to retry. If the notification is the one
+                // that failed, `paid` is raised and the payment commits — the
+                // merchant loses an email, not the payment.
+                $this->logger->info('PAYZUM :: PAID EVENT LISTENER FAILED :: Invoice: ' . $invoice->id . ' :: ' . $e->getMessage());
+            }
+
+            $this->forgetReference($invoice);
+
+            // The core swallows a rejected transaction (an amount that fails
+            // its over-payment check is flashed, not thrown), so the only
+            // trustworthy signal is whether the books actually moved.
+            $invoice->refresh();
+
+            return $invoice->paid > $paid_before;
+        });
+    }
+
+    /**
+     * Dispatch the paid event for the amount that was actually charged.
+     *
+     * The core helper always reports the document total, which the banking job
+     * then rejects as an over-payment on any invoice that had a previous part
+     * payment — silently, leaving the invoice unpaid. This is the same event
+     * with the outstanding balance instead.
+     */
+    public function dispatchPaidEvent($invoice, $request, $amount = null)
+    {
+        if ($amount === null) {
+            parent::dispatchPaidEvent($invoice, $request);
+
+            return;
+        }
+
+        $request['company_id'] = $invoice->company_id;
+        $request['account_id'] = setting($this->alias . '.account_id', setting('default.account'));
+        $request['amount'] = $amount;
+        $request['payment_method'] = $this->alias;
+        $request['reference'] = $this->getReference($invoice);
+        $request['type'] = 'income';
+
+        event(new PaymentReceived($invoice, $request));
     }
 
     /**

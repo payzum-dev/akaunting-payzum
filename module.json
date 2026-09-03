@@ -1,7 +1,7 @@
 {
     "alias": "payzum",
     "icon": "payments",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "active": 1,
     "providers": [
         "Modules\\Payzum\\Providers\\Event",

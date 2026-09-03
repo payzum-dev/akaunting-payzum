@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+# Development-only files: excluded from the zip built for the Akaunting App Store
+# (`git archive`) and from Composer dist tarballs.
+/Tests               export-ignore
+/.github             export-ignore
+/.gitattributes      export-ignore
+/.gitignore          export-ignore

@@ -2,6 +2,7 @@
 
 namespace Modules\Payzum\Tests\Feature;
 
+use App\Jobs\Banking\CreateBankingDocumentTransaction;
 use App\Models\Banking\Transaction;
 use App\Models\Document\Document;
 use Illuminate\Support\Facades\URL;
@@ -131,6 +132,34 @@ class PaymentTest extends PaymentTestCase
         $this->assertNotEquals('paid', Document::find($this->invoice->id)->status);
 
         $this->assertDatabaseMissing('transactions', ['document_id' => $this->invoice->id]);
+    }
+
+    public function testItShouldRecordThePaymentOfAPartiallyPaidInvoice()
+    {
+        $this->prepareInvoice();
+
+        // Half of the invoice was settled by other means; the hosted checkout
+        // charges the balance, and the books have to move by that same amount.
+        $half = round($this->invoice->amount / 2, 2);
+        $this->dispatch(new CreateBankingDocumentTransaction($this->invoice, [
+            'company_id' => $this->invoice->company_id,
+            'account_id' => setting('default.account'),
+            'amount' => $half,
+            'currency_code' => $this->invoice->currency_code,
+            'currency_rate' => $this->invoice->currency_rate,
+            'payment_method' => 'offline-payments.cash.1',
+            'type' => 'income',
+        ]));
+
+        $invoice = Document::find($this->invoice->id);
+        $due = $invoice->amount - $invoice->paid;
+
+        $this->postIpn($this->payload(['price_amount' => $due]))->assertOk();
+
+        $invoice = Document::find($this->invoice->id);
+
+        $this->assertEquals('paid', $invoice->status);
+        $this->assertEquals(2, Transaction::where('document_id', $invoice->id)->count());
     }
 
     public function testItShouldIgnoreRedeliveredFinishedIpn()

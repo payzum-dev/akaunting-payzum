@@ -2,20 +2,14 @@
     'root' => array(
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'type' => 'library',
+        'type' => 'akaunting-module',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '47f44ba514676b9c8302b40f80d5a04750635e28',
+        'reference' => '16e33e9fe8720615334b9d796e1cf53cd5019998',
         'name' => 'payzum/module-payzum',
         'dev' => true,
     ),
     'versions' => array(
-        'league/omnipay' => array(
-            'dev_requirement' => false,
-            'replaced' => array(
-                0 => '*',
-            ),
-        ),
         'omnipay/common' => array(
             'dev_requirement' => false,
             'replaced' => array(
@@ -25,10 +19,10 @@
         'payzum/module-payzum' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'type' => 'library',
+            'type' => 'akaunting-module',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '47f44ba514676b9c8302b40f80d5a04750635e28',
+            'reference' => '16e33e9fe8720615334b9d796e1cf53cd5019998',
             'dev_requirement' => false,
         ),
         'payzum/omnipay-payzum' => array(

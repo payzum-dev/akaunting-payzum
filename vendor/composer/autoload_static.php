@@ -15,6 +15,10 @@ class ComposerStaticInitPayzum
         array (
             'Omnipay\\Payzum\\' => 15,
         ),
+        'M' => 
+        array (
+            'Modules\\Payzum\\' => 15,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -25,6 +29,10 @@ class ComposerStaticInitPayzum
         'Omnipay\\Payzum\\' => 
         array (
             0 => __DIR__ . '/..' . '/payzum/omnipay-payzum/src',
+        ),
+        'Modules\\Payzum\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/',
         ),
     );
 

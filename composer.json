@@ -3,6 +3,7 @@
         "autoloader-suffix": "Payzum"
     },
     "name": "payzum/module-payzum",
+    "type": "akaunting-module",
     "description": "Payzum crypto & stablecoin payments app for Akaunting",
     "homepage": "https://payzum.com",
     "keywords": [
@@ -16,13 +17,17 @@
         "usdc",
         "usdt"
     ],
-    "license": "GPL-3.0+",
+    "license": "GPL-3.0-or-later",
     "require": {
         "payzum/omnipay-payzum": "^0.1.1"
     },
     "replace": {
-        "omnipay/common": "*",
-        "league/omnipay": "*"
+        "omnipay/common": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Payzum\\": ""
+        }
     },
     "scripts": {
         "test": [
