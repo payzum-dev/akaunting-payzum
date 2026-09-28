@@ -29,9 +29,14 @@ driver, and follows the structure of the official
 
 ## Install
 
-Copy this directory to `modules/Payzum` of an Akaunting ≥ 3.0 install (the
-`vendor/` directory is included, no composer step needed), then enable
-**Payzum** from the admin panel and open its settings:
+**From the release zip (recommended).** Download
+[`payzum-akaunting-0.2.0.zip`](https://github.com/payzum-dev/akaunting-payzum/releases/latest) and
+unzip it inside `modules/` of an Akaunting ≥ 3.0 install — the archive already contains the
+`Payzum/` folder.
+
+**From a clone.** Copy this repository's contents to `modules/Payzum`. Either way the `vendor/`
+directory is included, so there is no composer step. Then enable **Payzum** from the admin panel and
+open its settings:
 
 | Setting | Meaning |
 |---|---|
